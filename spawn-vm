@@ -1,0 +1,95 @@
+#!/usr/bin/bash
+
+VM=''
+ISO=''
+OS_TYPE=''
+HD_SIZE=25600
+RAM=512
+VRAM=128
+NIC='nat'
+IP=$( ip addr | fgrep 'inet ' | fgrep 'brd' | perl -n -e '/inet\s(\d+\.\d+\.\d+\.\d+)/ && print $1' )
+VERBOSE=0
+
+usage() {
+    echo -e "\nUsage $> $0 -n <VM Name> -i <Iso Path> -o <OS Type> [drvNV]\n"
+    echo -e "Required Arguments\n=================="
+    echo -e "\t-n\tVirtual Machine Name"
+    echo -e "\t-i\tPath To ISO\n"
+    echo -e "\t-o\tOperating System Type\n"
+    echo -e "Optional Arguments\n=================="
+    echo -e "\t-d\tHard Drive Size (Specified In Mb, Defaults to 25Gb)"
+    echo -e "\t-r\tAmount Of Ram (Specified In Mb, Defaults to 512Mb)"
+    echo -e "\t-v\tAmount Of VRam (Specified In Mb, Defaults to 128Mb)"
+    echo -e "\t-N\tSet Network Type (Defaults to NAT)"
+    echo -e "\t-V\tOutput Results Verbosely\n"
+}
+
+results() {
+    echo -e "[+] Finished Creating VM ( $VM )"
+    echo -e "\t- Iso  $ISO"
+    echo -e "\t- Type $OS_TYPE"
+    echo -e "\t- Ram  $RAM\tVRam $VRAM"
+    echo -e "\t- HDD  $HD_SIZE"
+    echo -e "\t- NIC  $NIC"
+}
+
+while getopts ":n:d:o:r:v:N:i:V" flag; do
+
+    case $flag in
+        # Virtual Machine Name (REQUIRED)
+        n)
+            VM="$OPTARG"
+            ;;    
+        # Hard Drive Size in MB
+        d)
+            HD_SIZE="$OPTARG"
+            ;;
+        # Operating System Type
+        o)
+            OS_TYPE="$OPTARG"
+            ;;
+        # Amount Of Ram in MB
+        r)
+            RAM="$OPTARG"
+            ;;
+        # Amount of VRam in MB
+        v)
+            VRAM="$OPTARG"
+            ;;
+        # Set NIC Type
+        N)
+            NIC="$OPTARG"
+            ;;
+        # Path to iso
+        i)
+            ISO="$OPTARG"
+            ;;
+        # Show Details After Build
+        V)
+            VERBOSE=1
+            ;;
+        \?)
+            usage
+            ;;
+    esac
+
+done
+
+if [ -z "$VM" ] || [ -z "$ISO" ] || [ -z "$OS_TYPE" ]; then
+    usage
+    exit 1
+fi
+
+VBoxManage createvm --name $VM --register
+VBoxManage createhd --filename "$HOME/VirtualBox VMs/$VM/$VM.vdi" --size $HD_SIZE
+VBoxManage modifyvm $VM --ostype "$OS_TYPE" --memory "$RAM" --vram "$VRAM" --nic1 "$NIC"
+VBoxManage modifyvm $VM --vrde on --vrdeport 42088 --vrdeaddress $IP
+VBoxManage storagectl $VM --name IDE --add ide --controller PIIX4 --bootable on
+VBoxManage storagectl $VM --name SATA --add sata --controller IntelAhci --bootable on
+VBoxManage storageattach $VM --storagectl IDE --port 0 --device 0 --type dvddrive --medium "$ISO"
+VBoxManage storageattach $VM --storagectl SATA --port 0 --device 0 --type hdd --medium "$HOME/VirtualBox VMs/$VM/$VM.vdi" 
+
+if [ "$VERBOSE" -gt 0 ]; then
+    results
+    echo -e "\n\t[!!] For greater detail: VBoxManage showvminfo $VM [!!]"
+fi
