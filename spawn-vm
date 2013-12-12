@@ -1,4 +1,13 @@
 #!/usr/bin/bash
+#
+# Quickly Spin Virtual Machines on a headless system 
+#
+#   Wraps VBoxManage to allow quick creation of virtual machines
+#
+#
+# Example Usage $> spawn-vm -n VMName -i /path/to/iso -o RedHat
+#
+#
 
 VM=''
 ISO=''
@@ -31,6 +40,7 @@ results() {
     echo -e "\t- Ram  $RAM\tVRam $VRAM"
     echo -e "\t- HDD  $HD_SIZE"
     echo -e "\t- NIC  $NIC"
+    echo -e "\n\t- To Start $> VBoxManage startvm $VM --type headless"
 }
 
 while getopts ":n:d:o:r:v:N:i:V" flag; do

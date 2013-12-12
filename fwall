@@ -1,4 +1,9 @@
 #!/usr/bin/python
+#
+# Firewall Log Parser
+#
+# Example usage: cat /var/log/firewall.log | fwall -q
+#
 
 import re, sys
 from argparse import ArgumentParser
