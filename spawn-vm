@@ -28,9 +28,10 @@ usage() {
     echo -e "Optional Arguments\n=================="
     echo -e "\t-d\tHard Drive Size (Specified In Mb, Defaults to 25Gb)"
     echo -e "\t-r\tAmount Of Ram (Specified In Mb, Defaults to 512Mb)"
-    echo -e "\t-v\tAmount Of VRam (Specified In Mb, Defaults to 128Mb)"
+    echo -e "\t-v\tAmount Of VRam (Specified In Mb, Defaults to 128Mb; Must be between 1 and 256)"
     echo -e "\t-N\tSet Network Type (Defaults to NAT)"
     echo -e "\t-V\tOutput Results Verbosely\n"
+    exit 1
 }
 
 results() {
@@ -41,6 +42,7 @@ results() {
     echo -e "\t- HDD  $HD_SIZE"
     echo -e "\t- NIC  $NIC"
     echo -e "\n\t- To Start $> VBoxManage startvm $VM --type headless"
+    echo -e "\n\t[!!] For greater detail: VBoxManage showvminfo $VM [!!]"
 }
 
 while getopts ":n:d:o:r:v:N:i:V" flag; do
@@ -64,7 +66,8 @@ while getopts ":n:d:o:r:v:N:i:V" flag; do
             ;;
         # Amount of VRam in MB
         v)
-            VRAM="$OPTARG"
+            VRAM=$OPTARG
+            [ $VRAM -lt 1 ] || [ $VRAM gt 256 ] && usage            
             ;;
         # Set NIC Type
         N)
@@ -85,10 +88,7 @@ while getopts ":n:d:o:r:v:N:i:V" flag; do
 
 done
 
-if [ -z "$VM" ] || [ -z "$ISO" ] || [ -z "$OS_TYPE" ]; then
-    usage
-    exit 1
-fi
+[ -z "$VM" ] || [ -z "$ISO" ] || [ -z "$OS_TYPE" ] && usage
 
 VBoxManage createvm --name $VM --register
 VBoxManage createhd --filename "$HOME/VirtualBox VMs/$VM/$VM.vdi" --size $HD_SIZE
@@ -99,7 +99,4 @@ VBoxManage storagectl $VM --name SATA --add sata --controller IntelAhci --bootab
 VBoxManage storageattach $VM --storagectl IDE --port 0 --device 0 --type dvddrive --medium "$ISO"
 VBoxManage storageattach $VM --storagectl SATA --port 0 --device 0 --type hdd --medium "$HOME/VirtualBox VMs/$VM/$VM.vdi" 
 
-if [ "$VERBOSE" -gt 0 ]; then
-    results
-    echo -e "\n\t[!!] For greater detail: VBoxManage showvminfo $VM [!!]"
-fi
+[ "$VERBOSE" -gt 0 ] && results
