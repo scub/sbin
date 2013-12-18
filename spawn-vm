@@ -45,6 +45,12 @@ results() {
     echo -e "\n\t[!!] For greater detail: VBoxManage showvminfo $VM [!!]"
 }
 
+error() {
+    echo -e "\t[!] ERROR: $*\n"
+    usage
+}
+
+
 while getopts ":n:d:o:r:v:N:i:V" flag; do
 
     case $flag in
@@ -67,7 +73,7 @@ while getopts ":n:d:o:r:v:N:i:V" flag; do
         # Amount of VRam in MB
         v)
             VRAM=$OPTARG
-            [ $VRAM -lt 1 ] || [ $VRAM gt 256 ] && usage            
+            [ $VRAM -lt 1 ] || [ $VRAM gt 256 ] && error "Supplied vRam value must be between 1 and 256"            
             ;;
         # Set NIC Type
         N)
