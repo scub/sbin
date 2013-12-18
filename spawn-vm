@@ -22,15 +22,15 @@ VERBOSE=0
 usage() {
     echo -e "\nUsage $> $0 -n <VM Name> -i <Iso Path> -o <OS Type> [drvNV]\n"
     echo -e "Required Arguments\n=================="
-    echo -e "\t-n\tVirtual Machine Name"
-    echo -e "\t-i\tPath To ISO\n"
-    echo -e "\t-o\tOperating System Type\n"
+    echo -e "\t-n <name>\tVirtual Machine Name"
+    echo -e "\t-i <iso_path>\tPath To ISO"
+    echo -e "\t-o <os_type>\tOperating System Type\n"
     echo -e "Optional Arguments\n=================="
-    echo -e "\t-d\tHard Drive Size (Specified In Mb, Defaults to 25Gb)"
-    echo -e "\t-r\tAmount Of Ram (Specified In Mb, Defaults to 512Mb)"
-    echo -e "\t-v\tAmount Of VRam (Specified In Mb, Defaults to 128Mb; Must be between 1 and 256)"
-    echo -e "\t-N\tSet Network Type (Defaults to NAT)"
-    echo -e "\t-V\tOutput Results Verbosely\n"
+    echo -e "\t-d <size>\tHard Drive Size (Specified In Mb, Defaults to 25Gb)"
+    echo -e "\t-r <size>\tAmount Of Ram (Specified In Mb, Defaults to 512Mb)"
+    echo -e "\t-v <size>\tAmount Of VRam (Specified In Mb, Defaults to 128Mb; Must be between 1 and 256)"
+    echo -e "\t-N <nic_type>\tSet Network Type (Defaults to NAT)"
+    echo -e "\t-V\t\tOutput Results Verbosely\n"
     exit 1
 }
 
@@ -46,7 +46,7 @@ results() {
 }
 
 error() {
-    echo -e "\t[!] ERROR: $*\n"
+    echo -e "\n\n\t[!!!] ERROR: $* [!!!]\n"
     usage
 }
 
@@ -73,7 +73,7 @@ while getopts ":n:d:o:r:v:N:i:V" flag; do
         # Amount of VRam in MB
         v)
             VRAM=$OPTARG
-            [ $VRAM -lt 1 ] || [ $VRAM gt 256 ] && error "Supplied vRam value must be between 1 and 256"            
+            [ $VRAM -lt 1 ] || [ $VRAM -gt 256 ] && error "(-v VRam) Supplied value must be between 1 and 256"            
             ;;
         # Set NIC Type
         N)
