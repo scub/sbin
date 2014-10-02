@@ -1,0 +1,38 @@
+#!/bin/bash
+#
+# Drop into quick mon shell
+#
+#
+[ -z "$1" ] && iface="eth0" || iface="$1"
+
+# Create session, Start Dumping 
+tmux new-session -s mon -n "Traffic Dump" -d
+tmux select-window -t "Traffic Dump"
+tmux send -t mon.0 "sudo tcpdump -ni $iface" ENTER 
+
+# Overlord
+tmux new-window -t mon -n "Overlord"
+
+# Split window c-a -
+tmux splitw -v -p 25 -t mon
+tmux select-layout even-vertical
+
+# Split window c-a |
+#tmux splitw -h -p 750 -t Overview
+#tmux select-layout even-horizontal
+
+# Commands
+tmux send -t mon.0 "htop --delay 60" ENTER
+tmux send -t mon.1 "sudo nethogs -d 60 $iface" ENTER
+
+# Debug Console
+tmux new-window -t mon -n "Debuggins"
+tmux splitw -v -p 25 -t mon
+tmux select-layout even-vertical
+
+# Commands
+tmux send -t mon.0 "python2" ENTER
+tmux send -t mon.1 'echo -e "\t\t[+] Well hello thar\n\n\n"' ENTER
+
+# Drop into debug shell 
+tmux attach -t mon
